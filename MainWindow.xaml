@@ -114,7 +114,7 @@
                        Visibility="Collapsed"/>
 
             <TextBlock Grid.Row="1"
-                       Text="↑ ↓  Navigate     Enter  Select     Esc  Exit"
+                       Text="↑ ↓ / Stick  Navigate     A / Enter  Select     B / Esc  Exit"
                        FontSize="16"
                        Foreground="#475569"
                        FontFamily="Segoe UI"/>
