@@ -124,18 +124,15 @@ public partial class MainWindow : Window
             return;
         }
 
-        ExitWithSuccess(device.Name);
+        ShowSuccess(device.Name);
     }
 
-    async void ExitWithSuccess(string deviceName)
+    void ShowSuccess(string deviceName)
     {
-        _controllerTimer.Stop();
         StatusText.Text = $"Switched to {deviceName}";
         StatusText.Foreground = new SolidColorBrush(Color.FromRgb(34, 197, 94));
         StatusText.Visibility = Visibility.Visible;
-
-        await Task.Delay(900);
-        Application.Current.Shutdown();
+        LoadDevices();
     }
 
     void ShowError(string message)
