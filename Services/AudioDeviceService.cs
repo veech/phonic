@@ -35,6 +35,28 @@ public static class AudioDeviceService
         return devices;
     }
 
+    public static float GetMasterVolume()
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        try
+        {
+            using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            return device.AudioEndpointVolume.MasterVolumeLevelScalar;
+        }
+        catch { return 0f; }
+    }
+
+    public static void SetMasterVolume(float volume)
+    {
+        using var enumerator = new MMDeviceEnumerator();
+        try
+        {
+            using var device = enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            device.AudioEndpointVolume.MasterVolumeLevelScalar = Math.Clamp(volume, 0f, 1f);
+        }
+        catch { }
+    }
+
     public static bool SetDefaultDevice(string deviceId)
     {
         try

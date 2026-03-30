@@ -41,12 +41,68 @@
             <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
             <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         </Style>
+
+        <!-- Slider track: filled (left of thumb) -->
+        <Style x:Key="SliderDecreaseRepeat" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="#3B82F6" Height="6" CornerRadius="3,0,0,3"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Slider track: empty (right of thumb) -->
+        <Style x:Key="SliderIncreaseRepeat" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="#334155" Height="6" CornerRadius="0,3,3,0"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="VolumeSliderStyle" TargetType="Slider">
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid VerticalAlignment="Center" Height="20">
+                            <Track x:Name="PART_Track" VerticalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderDecreaseRepeat}" Command="Slider.DecreaseLarge"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb IsTabStop="False">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="White" Width="20" Height="20"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderIncreaseRepeat}" Command="Slider.IncreaseLarge"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -99,8 +155,30 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
+        <!-- Volume -->
+        <StackPanel Grid.Row="2" Margin="80,28,80,0">
+            <DockPanel Margin="0,0,0,10">
+                <TextBlock Text="Master Volume"
+                           FontSize="18"
+                           Foreground="#94A3B8"
+                           FontFamily="Segoe UI"
+                           VerticalAlignment="Center"/>
+                <TextBlock x:Name="VolumeLabel"
+                           DockPanel.Dock="Right"
+                           FontSize="18"
+                           Foreground="#F8FAFC"
+                           FontFamily="Segoe UI"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+            <Slider x:Name="VolumeSlider"
+                    Minimum="0" Maximum="100"
+                    SmallChange="1" LargeChange="5"
+                    Style="{StaticResource VolumeSliderStyle}"
+                    ValueChanged="OnVolumeChanged"/>
+        </StackPanel>
+
         <!-- Status + Footer -->
-        <Grid Grid.Row="2" Margin="80,20,80,48">
+        <Grid Grid.Row="3" Margin="80,20,80,48">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -114,7 +192,7 @@
                        Visibility="Collapsed"/>
 
             <TextBlock Grid.Row="1"
-                       Text="↑ ↓ / Stick  Navigate     A / Enter  Select     B / Esc  Exit"
+                       Text="↑ ↓  Navigate     ◄ ►  Volume     A / Enter  Select     B / Esc  Exit"
                        FontSize="16"
                        Foreground="#475569"
                        FontFamily="Segoe UI"/>

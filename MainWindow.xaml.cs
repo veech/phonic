@@ -1,6 +1,7 @@
 using phonic.Models;
 using phonic.Services;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -13,6 +14,8 @@ public partial class MainWindow : Window
     readonly DispatcherTimer _controllerTimer = new() { Interval = TimeSpan.FromMilliseconds(50) };
     XInputService.ControllerState? _prevControllerState;
     DateTime _navRepeatTime = DateTime.MinValue;
+    DateTime _volRepeatTime = DateTime.MinValue;
+    bool _suppressVolumeChange;
 
     public MainWindow()
     {
@@ -26,6 +29,7 @@ public partial class MainWindow : Window
     void OnLoaded(object sender, RoutedEventArgs e)
     {
         LoadDevices();
+        LoadVolume();
         Keyboard.Focus(DeviceList);
         _controllerTimer.Start();
     }
@@ -47,6 +51,23 @@ public partial class MainWindow : Window
         DeviceList.ScrollIntoView(DeviceList.SelectedItem);
     }
 
+    void LoadVolume()
+    {
+        _suppressVolumeChange = true;
+        var volume = (int)Math.Round(AudioDeviceService.GetMasterVolume() * 100);
+        VolumeSlider.Value = volume;
+        VolumeLabel.Text = $"{volume}%";
+        _suppressVolumeChange = false;
+    }
+
+    void OnVolumeChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (_suppressVolumeChange) return;
+        var pct = (int)e.NewValue;
+        VolumeLabel.Text = $"{pct}%";
+        AudioDeviceService.SetMasterVolume(pct / 100f);
+    }
+
     void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         switch (e.Key)
@@ -54,6 +75,14 @@ public partial class MainWindow : Window
             case Key.Enter:
             case Key.Space:
                 SelectDevice();
+                e.Handled = true;
+                break;
+            case Key.Left:
+                AdjustVolume(-5);
+                e.Handled = true;
+                break;
+            case Key.Right:
+                AdjustVolume(5);
                 e.Handled = true;
                 break;
             case Key.Escape:
@@ -83,6 +112,12 @@ public partial class MainWindow : Window
             return;
         }
 
+        HandleNavRepeat(state, prev);
+        HandleVolumeRepeat(state, prev);
+    }
+
+    void HandleNavRepeat(XInputService.ControllerState state, XInputService.ControllerState? prev)
+    {
         var up = state.DpadUp || state.StickUp;
         var down = state.DpadDown || state.StickDown;
         var prevUp = (prev?.DpadUp ?? false) || (prev?.StickUp ?? false);
@@ -98,6 +133,22 @@ public partial class MainWindow : Window
         }
     }
 
+    void HandleVolumeRepeat(XInputService.ControllerState state, XInputService.ControllerState? prev)
+    {
+        var left = state.DpadLeft || state.StickLeft;
+        var right = state.DpadRight || state.StickRight;
+        var prevLeft = (prev?.DpadLeft ?? false) || (prev?.StickLeft ?? false);
+        var prevRight = (prev?.DpadRight ?? false) || (prev?.StickRight ?? false);
+
+        if (left && !prevLeft) { AdjustVolume(-5); _volRepeatTime = DateTime.Now.AddMilliseconds(400); }
+        else if (right && !prevRight) { AdjustVolume(5); _volRepeatTime = DateTime.Now.AddMilliseconds(400); }
+        else if ((left || right) && DateTime.Now >= _volRepeatTime)
+        {
+            AdjustVolume(left ? -5 : 5);
+            _volRepeatTime = DateTime.Now.AddMilliseconds(100);
+        }
+    }
+
     void NavigateUp()
     {
         if (DeviceList.SelectedIndex <= 0) return;
@@ -110,6 +161,11 @@ public partial class MainWindow : Window
         if (DeviceList.SelectedIndex >= _devices.Count - 1) return;
         DeviceList.SelectedIndex++;
         DeviceList.ScrollIntoView(DeviceList.SelectedItem);
+    }
+
+    void AdjustVolume(int delta)
+    {
+        VolumeSlider.Value = Math.Clamp(VolumeSlider.Value + delta, 0, 100);
     }
 
     void SelectDevice()
@@ -133,6 +189,7 @@ public partial class MainWindow : Window
         StatusText.Foreground = new SolidColorBrush(Color.FromRgb(34, 197, 94));
         StatusText.Visibility = Visibility.Visible;
         LoadDevices();
+        LoadVolume();
     }
 
     void ShowError(string message)

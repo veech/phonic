@@ -7,6 +7,8 @@ public static class XInputService
     const int ERROR_SUCCESS = 0;
     const short BUTTON_DPAD_UP = 0x0001;
     const short BUTTON_DPAD_DOWN = 0x0002;
+    const short BUTTON_DPAD_LEFT = 0x0004;
+    const short BUTTON_DPAD_RIGHT = 0x0008;
     const short BUTTON_BACK = 0x0020;
     const short BUTTON_A = 0x1000;
     const short BUTTON_B = 0x2000;
@@ -37,9 +39,9 @@ public static class XInputService
     }
 
     public record ControllerState(
-        bool DpadUp, bool DpadDown,
+        bool DpadUp, bool DpadDown, bool DpadLeft, bool DpadRight,
         bool A, bool B, bool Back,
-        bool StickUp, bool StickDown
+        bool StickUp, bool StickDown, bool StickLeft, bool StickRight
     );
 
     public static ControllerState? GetStateForAnyController()
@@ -63,16 +65,21 @@ public static class XInputService
             if (XInputGetState(index, ref raw) != ERROR_SUCCESS) return null;
 
             var b = raw.Gamepad.Buttons;
+            var lx = raw.Gamepad.ThumbLX;
             var ly = raw.Gamepad.ThumbLY;
 
             return new ControllerState(
                 DpadUp: (b & BUTTON_DPAD_UP) != 0,
                 DpadDown: (b & BUTTON_DPAD_DOWN) != 0,
+                DpadLeft: (b & BUTTON_DPAD_LEFT) != 0,
+                DpadRight: (b & BUTTON_DPAD_RIGHT) != 0,
                 A: (b & BUTTON_A) != 0,
                 B: (b & BUTTON_B) != 0,
                 Back: (b & BUTTON_BACK) != 0,
                 StickUp: ly > THUMB_DEADZONE,
-                StickDown: ly < -THUMB_DEADZONE
+                StickDown: ly < -THUMB_DEADZONE,
+                StickLeft: lx < -THUMB_DEADZONE,
+                StickRight: lx > THUMB_DEADZONE
             );
         }
         catch (DllNotFoundException)
