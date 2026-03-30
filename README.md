@@ -12,13 +12,15 @@ Or run the compiled executable directly from `bin/Debug/net10.0-windows/phonic.e
 
 ## How to publish
 
-Publish a self-contained single-file executable for Windows:
+Publish a framework-dependent build for Windows:
 
 ```
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+dotnet publish -c Release --self-contained false -o publish
 ```
 
-The output will be at `publish/phonic.exe`. This single file can be deployed anywhere without requiring .NET to be installed separately.
+The output will be in the `publish/` folder (~800KB total). Point Steam at `publish/Phonic.exe`.
+
+Requires [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) to be installed on the target machine.
 
 ## How to add to Steam
 
